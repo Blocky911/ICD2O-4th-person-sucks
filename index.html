@@ -10,7 +10,10 @@
   <div class="animated-bg"></div>
 
   <header class="navbar">
-    <div class="logo">✅ HabitFlow</div>
+    <div class="logo">
+      <div class="flame-logo">🔥</div>
+      <span>HabitFlow</span>
+    </div>
 
     <nav>
       <a href="#home">Home</a>
@@ -20,32 +23,47 @@
       <a href="#about">About</a>
     </nav>
 
-    <button id="themeBtn">🌙</button>
+    <button id="themeBtn" class="theme-btn">🌙</button>
   </header>
 
   <section id="home" class="page hero">
-    <div class="hero-text">
+    <div class="hero-content">
       <p class="tag">Smart Habit Tracker</p>
-      <h1>Build better habits every single day.</h1>
+      <h1>Build better habits with style.</h1>
       <p>
-        Track your habits, monitor progress, build streaks, and stay motivated
-        with a clean modern dashboard.
+        Track checklist habits and number-based goals like water, steps,
+        reading pages, study minutes, workouts, and more.
       </p>
       <a href="#tracker" class="main-btn">Start Tracking</a>
     </div>
 
-    <img
-      src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=700&q=80"
-      alt="Productive desk"
-    />
+    <div class="hero-image">
+      <img
+        src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=800&q=80"
+        alt="Productive desk"
+      />
+    </div>
   </section>
 
   <main>
     <section id="tracker" class="page card">
-      <h2>Add a Habit</h2>
+      <div class="section-title">
+        <h2>Add New Habit</h2>
+        <p>Create either a checklist habit or a counter habit.</p>
+      </div>
 
       <form id="habitForm">
-        <input type="text" id="habitInput" placeholder="Enter a new habit..." required />
+        <input
+          type="text"
+          id="habitInput"
+          placeholder="Example: Drink water, Study, Read pages..."
+          required
+        />
+
+        <select id="typeInput">
+          <option value="checkbox">Checkbox Habit</option>
+          <option value="counter">Counter Habit</option>
+        </select>
 
         <select id="categoryInput">
           <option value="Health">Health</option>
@@ -62,7 +80,20 @@
           <option value="High">High Priority</option>
         </select>
 
-        <button type="submit">+ Add Habit</button>
+        <input
+          type="number"
+          id="targetInput"
+          placeholder="Target"
+          min="1"
+        />
+
+        <input
+          type="text"
+          id="unitInput"
+          placeholder="Unit: pages, glasses, mins..."
+        />
+
+        <button type="submit" class="add-btn">+ Add Habit</button>
       </form>
 
       <div class="tools">
@@ -72,6 +103,7 @@
           <button class="filter-btn active" data-filter="all">All</button>
           <button class="filter-btn" data-filter="active">Active</button>
           <button class="filter-btn" data-filter="completed">Completed</button>
+          <button class="filter-btn" data-filter="counter">Counters</button>
         </div>
       </div>
 
@@ -79,7 +111,10 @@
     </section>
 
     <section id="dashboard" class="page card">
-      <h2>Dashboard</h2>
+      <div class="section-title">
+        <h2>Dashboard</h2>
+        <p>See your progress, habits, and daily performance.</p>
+      </div>
 
       <div class="stats">
         <div class="stat">
@@ -93,13 +128,13 @@
         </div>
 
         <div class="stat">
-          <h3 id="progressPercent">0%</h3>
-          <p>Progress</p>
+          <h3 id="counterHabits">0</h3>
+          <p>Counter Habits</p>
         </div>
 
         <div class="stat">
-          <h3 id="streakCount">🔥 0</h3>
-          <p>Streak</p>
+          <h3 id="progressPercent">0%</h3>
+          <p>Overall Progress</p>
         </div>
       </div>
 
@@ -108,6 +143,7 @@
           <p>Today’s Progress</p>
           <p id="progressText">0/0 completed</p>
         </div>
+
         <div class="progress-bar">
           <div id="progressFill"></div>
         </div>
@@ -117,28 +153,37 @@
     </section>
 
     <section id="goals" class="page card">
-      <h2>Goals</h2>
+      <div class="section-title">
+        <h2>Goal Ideas</h2>
+        <p>Use these as inspiration for checkbox or counter habits.</p>
+      </div>
 
       <div class="goal-grid">
-        <div class="goal-card">🌊 Drink more water</div>
-        <div class="goal-card">📚 Study daily</div>
-        <div class="goal-card">🏃 Exercise often</div>
-        <div class="goal-card">🧠 Improve mindset</div>
+        <div class="goal-card">💧 Drink 8 glasses of water</div>
+        <div class="goal-card">📚 Read 20 pages</div>
+        <div class="goal-card">⏱️ Study 60 minutes</div>
+        <div class="goal-card">🏃 Walk 10,000 steps</div>
+        <div class="goal-card">💪 Do 50 pushups</div>
+        <div class="goal-card">🧠 Meditate 10 minutes</div>
       </div>
     </section>
 
     <section id="about" class="page card">
-      <h2>About HabitFlow</h2>
-      <p>
-        HabitFlow helps users stay consistent by organizing habits into
-        categories, tracking daily progress, saving data, and showing useful
-        statistics.
+      <div class="section-title">
+        <h2>About HabitFlow</h2>
+      </div>
+
+      <p class="about-text">
+        HabitFlow is a modern habit tracker that supports both simple checkbox
+        habits and number-based counter habits. It saves user data, tracks
+        progress, filters habits, and gives users a clean dashboard to stay
+        motivated.
       </p>
     </section>
   </main>
 
   <footer>
-    <p>HabitFlow — Stay consistent. Stay powerful.</p>
+    <p>HabitFlow — Track habits. Build discipline. Stay consistent.</p>
   </footer>
 
   <script src="script.js"></script>
