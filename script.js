@@ -19,6 +19,7 @@ const progressPercent = document.getElementById("progressPercent");
 const progressText = document.getElementById("progressText");
 const progressFill = document.getElementById("progressFill");
 const quoteText = document.getElementById("quoteText");
+const calendarMatrix = document.getElementById("calendarMatrix");
 
 let currentFilter = "all";
 
@@ -28,7 +29,7 @@ function daysBetween(date1, date2) {
   return Math.floor(Math.abs((date2 - date1) / oneDay));
 }
 
-// Updated with Preloaded Anti-Habits alongside the original placeholders
+// Updated with Preloaded habits featuring all tracking metrics
 function getPreloadedHabits() {
   const todayIso = new Date().toISOString();
   return [
@@ -39,7 +40,10 @@ function getPreloadedHabits() {
       priority: "High",
       target: 8,
       current: 0,
-      unit: "glasses"
+      unit: "glasses",
+      streak: 2,
+      createdAt: todayIso,
+      lastUpdatedDate: todayIso
     },
     {
       text: "Study for 60 minutes",
@@ -48,14 +52,20 @@ function getPreloadedHabits() {
       priority: "High",
       target: 60,
       current: 0,
-      unit: "mins"
+      unit: "mins",
+      streak: 0,
+      createdAt: todayIso,
+      lastUpdatedDate: todayIso
     },
     {
       text: "Make my bed",
       type: "checkbox",
       category: "Productivity",
       priority: "Medium",
-      completed: false
+      completed: false,
+      streak: 5,
+      createdAt: todayIso,
+      lastUpdatedDate: todayIso
     },
     {
       text: "No Soda / Sugary Drinks",
@@ -156,6 +166,7 @@ function renderHabits() {
   if (filteredHabits.length === 0) {
     habitList.innerHTML = `<p class="empty">No habits found. Add one or change your filter.</p>`;
     updateDashboard();
+    renderCalendar();
     return;
   }
 
@@ -172,6 +183,11 @@ function renderHabits() {
       li.classList.add("anti-failed");
     }
 
+    // Days Elapsed Metrics calculations
+    const todayDate = new Date();
+    const lastUpdate = habit.lastUpdatedDate ? new Date(habit.lastUpdatedDate) : todayDate;
+    const daysSinceIncrease = daysBetween(lastUpdate, todayDate);
+
     if (habit.type === "checkbox") {
       li.innerHTML = `
         <input 
@@ -185,6 +201,7 @@ function renderHabits() {
             <span class="badge type-badge">Checkbox</span>
             <span class="badge ${habit.category}">${habit.category}</span>
             <span class="badge priority-${habit.priority}">${habit.priority}</span>
+            <span class="badge streak-badge">🔥 Streak: ${habit.streak || 0} days</span>
           </div>
         </div>
         <button class="delete-btn">Delete</button>
@@ -195,6 +212,12 @@ function renderHabits() {
 
       checkbox.addEventListener("change", function() {
         habits[realIndex].completed = checkbox.checked;
+        if (checkbox.checked) {
+          habits[realIndex].streak = (habits[realIndex].streak || 0) + 1;
+        } else {
+          habits[realIndex].streak = Math.max(0, (habits[realIndex].streak || 1) - 1);
+        }
+        habits[realIndex].lastUpdatedDate = new Date().toISOString();
         saveHabits();
         renderHabits();
       });
@@ -217,6 +240,8 @@ function renderHabits() {
             <span class="badge type-badge">Counter</span>
             <span class="badge ${habit.category}">${habit.category}</span>
             <span class="badge priority-${habit.priority}">${habit.priority}</span>
+            <span class="badge streak-badge">🔥 Goal Streak: ${habit.streak || 0} days</span>
+            <span class="badge counter-days-badge">⏱️ Last Added: ${daysSinceIncrease} days ago</span>
           </div>
           <div class="counter-box">
             <div class="counter-top">
@@ -244,25 +269,38 @@ function renderHabits() {
       const deleteBtn = li.querySelector(".delete-btn");
 
       minusBtn.addEventListener("click", function() {
+        const metGoalBefore = habits[realIndex].current >= habits[realIndex].target;
         habits[realIndex].current = Math.max(0, habits[realIndex].current - 1);
+        
+        if (metGoalBefore && habits[realIndex].current < habits[realIndex].target) {
+          habits[realIndex].streak = Math.max(0, (habits[realIndex].streak || 1) - 1);
+        }
         saveHabits();
         renderHabits();
       });
 
-      plusBtn.addEventListener("click", function() {
-        habits[realIndex].current = Math.min(habits[realIndex].target, habits[realIndex].current + 1);
+      function incrementCounter(amount) {
+        const metGoalBefore = habits[realIndex].current >= habits[realIndex].target;
+        habits[realIndex].current = Math.min(habits[realIndex].target * 2, habits[realIndex].current + amount); // allow going past for logs
+        habits[realIndex].lastUpdatedDate = new Date().toISOString();
+        
+        if (!metGoalBefore && habits[realIndex].current >= habits[realIndex].target) {
+          habits[realIndex].streak = (habits[realIndex].streak || 0) + 1;
+        }
         saveHabits();
         renderHabits();
-      });
+      }
 
-      quickBtn.addEventListener("click", function() {
-        habits[realIndex].current = Math.min(habits[realIndex].target, habits[realIndex].current + 5);
-        saveHabits();
-        renderHabits();
-      });
-
+      plusBtn.addEventListener("click", () => incrementCounter(1));
+      quickBtn.addEventListener("click", () => incrementCounter(5));
+      
       completeBtn.addEventListener("click", function() {
+        const metGoalBefore = habits[realIndex].current >= habits[realIndex].target;
         habits[realIndex].current = habits[realIndex].target;
+        habits[realIndex].lastUpdatedDate = new Date().toISOString();
+        if (!metGoalBefore) {
+          habits[realIndex].streak = (habits[realIndex].streak || 0) + 1;
+        }
         saveHabits();
         renderHabits();
       });
@@ -278,10 +316,7 @@ function renderHabits() {
       const percent = getCounterPercent(habit);
       const isFailed = habit.current >= habit.target;
 
-      // Dynamic Streak Computations
       const createdDate = habit.createdAt ? new Date(habit.createdAt) : new Date();
-      const todayDate = new Date();
-      
       const activeStreak = isFailed ? 0 : daysBetween(createdDate, todayDate);
       const daysSinceInfraction = habit.lastInfractionDate 
         ? daysBetween(new Date(habit.lastInfractionDate), todayDate) 
@@ -322,8 +357,6 @@ function renderHabits() {
       minusBtn.addEventListener("click", function() {
         const oldVal = habits[realIndex].current;
         habits[realIndex].current = Math.max(0, habits[realIndex].current - 1);
-        
-        // If rolling back below failure threshold, clean up infraction status
         if (oldVal >= habits[realIndex].target && habits[realIndex].current < habits[realIndex].target) {
           habits[realIndex].lastInfractionDate = null;
         }
@@ -333,8 +366,6 @@ function renderHabits() {
 
       plusBtn.addEventListener("click", function() {
         habits[realIndex].current = habits[realIndex].current + 1;
-        
-        // Check if this action triggers crossing into an infraction state
         if (habits[realIndex].current >= habits[realIndex].target) {
           habits[realIndex].lastInfractionDate = new Date().toISOString();
         }
@@ -353,6 +384,57 @@ function renderHabits() {
   });
 
   updateDashboard();
+  renderCalendar();
+}
+
+// NEW FUNCTION: Generates the Overall Habits Grid Matrix View
+function renderCalendar() {
+  if (!calendarMatrix) return;
+  calendarMatrix.innerHTML = "";
+
+  const validHabits = habits.filter(h => h && h.text && h.type);
+
+  if (validHabits.length === 0) {
+    calendarMatrix.innerHTML = `<p class="empty">No habit data available to construct calendar view.</p>`;
+    return;
+  }
+
+  validHabits.forEach(habit => {
+    const calendarCard = document.createElement("div");
+    calendarCard.className = "calendar-item";
+
+    let streakDisplay = 0;
+    let timingContext = "";
+    const today = new Date();
+
+    if (habit.type === "anti") {
+      const isFailed = habit.current >= habit.target;
+      const created = habit.createdAt ? new Date(habit.createdAt) : today;
+      streakDisplay = isFailed ? 0 : daysBetween(created, today);
+      
+      const lastInfr = habit.lastInfractionDate ? new Date(habit.lastInfractionDate) : created;
+      timingContext = `🛡️ Safe: ${daysBetween(lastInfr, today)} days`;
+    } else {
+      streakDisplay = habit.streak || 0;
+      const lastUp = habit.lastUpdatedDate ? new Date(habit.lastUpdatedDate) : today;
+      timingContext = `⏱️ Shift: ${daysBetween(lastUp, today)} days ago`;
+    }
+
+    calendarCard.innerHTML = `
+      <div class="cal-title">${habit.text}</div>
+      <div class="cal-meta">
+        <span class="badge ${habit.category}">${habit.category}</span>
+        <span class="badge type-badge">${habit.type.toUpperCase()}</span>
+      </div>
+      <div class="cal-streak-box">
+        <div class="cal-streak-num">🔥 ${streakDisplay}</div>
+        <div class="cal-streak-lbl">Day Streak</div>
+      </div>
+      <div class="cal-footer-metric">${timingContext}</div>
+    `;
+
+    calendarMatrix.appendChild(calendarCard);
+  });
 }
 
 function updateDashboard() {
@@ -384,20 +466,26 @@ habitForm.addEventListener("submit", function(e) {
   const type = typeInput.value;
   const category = categoryInput.value;
   const priority = priorityInput.value;
+  const todayIso = new Date().toISOString();
 
   if (text === "") {
     alert("Please enter a habit.");
     return;
   }
 
+  const baseHabit = {
+    text: text,
+    type: type,
+    category: category,
+    priority: priority,
+    createdAt: todayIso,
+    lastUpdatedDate: todayIso
+  };
+
   if (type === "checkbox") {
-    habits.push({
-      text: text,
-      type: "checkbox",
-      category: category,
-      priority: priority,
-      completed: false
-    });
+    baseHabit.completed = false;
+    baseHabit.streak = 0;
+    habits.push(baseHabit);
   }
 
   if (type === "counter" || type === "anti") {
@@ -409,24 +497,17 @@ habitForm.addEventListener("submit", function(e) {
       return;
     }
 
-    const newHabit = {
-      text: text,
-      type: type,
-      category: category,
-      priority: priority,
-      target: target,
-      current: 0,
-      unit: unit
-    };
+    baseHabit.target = target;
+    baseHabit.current = 0;
+    baseHabit.unit = unit;
 
-    // Tracking metadata initialized specifically for new Anti-Habits
     if (type === "anti") {
-      descTimestamp = new Date().toISOString();
-      newHabit.createdAt = descTimestamp;
-      newHabit.lastInfractionDate = null;
+      baseHabit.lastInfractionDate = null;
+    } else {
+      baseHabit.streak = 0;
     }
 
-    habits.push(newHabit);
+    habits.push(baseHabit);
   }
 
   habitInput.value = "";
