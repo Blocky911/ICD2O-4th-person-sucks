@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Habit Tracker</h1>
+        <p>Track your daily habits and stay productive!</p>
+    </header>
+
+    <main>
+        <section id="habit-list">
+            <h2>Your Habits</h2>
+            <ul id="habits">
+                <!-- Predefined habits -->
+                <li>
+                    <input type="checkbox" class="habit-checkbox">
+                    <span>Drink 8 glasses of water</span>
+                    <button class="delete-btn">Delete</button>
+                </li>
+                <li>
+                    <input type="checkbox" class="habit-checkbox">
+                    <span>Exercise for 30 minutes</span>
+                    <button class="delete-btn">Delete</button>
+                </li>
+                <li>
+                    <input type="checkbox" class="habit-checkbox">
+                    <span>Read for 20 minutes</span>
+                    <button class="delete-btn">Delete</button>
+                </li>
+            </ul>
+        </section>
+
+        <section id="add-habit">
+            <h2>Add a New Habit</h2>
+            <form id="habit-form">
+                <label for="new-habit">New Habit:</label>
+                <input type="text" id="new-habit" placeholder="Enter a new habit">
+                <button type="submit">Add Habit</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>Habit Tracker App - Debug and Improve Me!</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
