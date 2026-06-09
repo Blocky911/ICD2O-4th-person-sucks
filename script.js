@@ -22,8 +22,15 @@ const quoteText = document.getElementById("quoteText");
 
 let currentFilter = "all";
 
-// Base function to retrieve clean default values safely
+// Helper to safely compute days elapsed between two dates
+function daysBetween(date1, date2) {
+  const oneDay = 24 * 60 * 60 * 1000; 
+  return Math.floor(Math.abs((date2 - date1) / oneDay));
+}
+
+// Updated with Preloaded Anti-Habits alongside the original placeholders
 function getPreloadedHabits() {
+  const todayIso = new Date().toISOString();
   return [
     {
       text: "Drink 8 glasses of water",
@@ -49,11 +56,32 @@ function getPreloadedHabits() {
       category: "Productivity",
       priority: "Medium",
       completed: false
+    },
+    {
+      text: "No Soda / Sugary Drinks",
+      type: "anti",
+      category: "Health",
+      priority: "High",
+      target: 1,
+      current: 0,
+      unit: "slips",
+      createdAt: todayIso,
+      lastInfractionDate: null
+    },
+    {
+      text: "Limit Social Media before 12 PM",
+      type: "anti",
+      category: "Mindset",
+      priority: "Medium",
+      target: 3,
+      current: 0,
+      unit: "slips",
+      createdAt: todayIso,
+      lastInfractionDate: null
     }
   ];
 }
 
-// BUG FIX: Ensure default configurations load gracefully without parsing empty references.
 const localData = localStorage.getItem("habitflowHabits");
 let habits = [];
 
@@ -100,7 +128,6 @@ function getCounterPercent(habit) {
 function renderHabits() {
   habitList.innerHTML = "";
 
-  // BUG FIX: Filter out invalid entries immediately before evaluating search metrics or layout states
   let filteredHabits = habits.filter(function(habit) {
     return habit && typeof habit === "object" && habit.text && habit.type;
   });
@@ -251,6 +278,15 @@ function renderHabits() {
       const percent = getCounterPercent(habit);
       const isFailed = habit.current >= habit.target;
 
+      // Dynamic Streak Computations
+      const createdDate = habit.createdAt ? new Date(habit.createdAt) : new Date();
+      const todayDate = new Date();
+      
+      const activeStreak = isFailed ? 0 : daysBetween(createdDate, todayDate);
+      const daysSinceInfraction = habit.lastInfractionDate 
+        ? daysBetween(new Date(habit.lastInfractionDate), todayDate) 
+        : daysBetween(createdDate, todayDate);
+
       li.innerHTML = `
         <div class="counter-icon">⚠️</div>
         <div>
@@ -259,6 +295,8 @@ function renderHabits() {
             <span class="badge type-badge anti-badge">Anti-Habit</span>
             <span class="badge ${habit.category}">${habit.category}</span>
             <span class="badge priority-${habit.priority}">${habit.priority}</span>
+            <span class="badge anti-metric-badge">🔥 Active Streak: ${activeStreak} days</span>
+            <span class="badge anti-metric-badge">🛡️ Since Infraction: ${daysSinceInfraction} days</span>
           </div>
           <div class="counter-box">
             <div class="counter-top">
@@ -282,13 +320,24 @@ function renderHabits() {
       const deleteBtn = li.querySelector(".delete-btn");
 
       minusBtn.addEventListener("click", function() {
+        const oldVal = habits[realIndex].current;
         habits[realIndex].current = Math.max(0, habits[realIndex].current - 1);
+        
+        // If rolling back below failure threshold, clean up infraction status
+        if (oldVal >= habits[realIndex].target && habits[realIndex].current < habits[realIndex].target) {
+          habits[realIndex].lastInfractionDate = null;
+        }
         saveHabits();
         renderHabits();
       });
 
       plusBtn.addEventListener("click", function() {
         habits[realIndex].current = habits[realIndex].current + 1;
+        
+        // Check if this action triggers crossing into an infraction state
+        if (habits[realIndex].current >= habits[realIndex].target) {
+          habits[realIndex].lastInfractionDate = new Date().toISOString();
+        }
         saveHabits();
         renderHabits();
       });
@@ -360,7 +409,7 @@ habitForm.addEventListener("submit", function(e) {
       return;
     }
 
-    habits.push({
+    const newHabit = {
       text: text,
       type: type,
       category: category,
@@ -368,7 +417,16 @@ habitForm.addEventListener("submit", function(e) {
       target: target,
       current: 0,
       unit: unit
-    });
+    };
+
+    // Tracking metadata initialized specifically for new Anti-Habits
+    if (type === "anti") {
+      descTimestamp = new Date().toISOString();
+      newHabit.createdAt = descTimestamp;
+      newHabit.lastInfractionDate = null;
+    }
+
+    habits.push(newHabit);
   }
 
   habitInput.value = "";
@@ -391,7 +449,6 @@ filterButtons.forEach(function(button) {
   });
 });
 
-// Added Action Listener for Data Drops & Default Restorations
 resetDataBtn.addEventListener("click", function() {
   if (confirm("Are you sure you want to clear your data and reload preloaded habits?")) {
     habits = getPreloadedHabits();
