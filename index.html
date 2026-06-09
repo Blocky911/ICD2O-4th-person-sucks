@@ -1,54 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habit Tracker</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HabitFlow</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <header>
-        <h1>Habit Tracker</h1>
-        <p>Track your daily habits and stay productive!</p>
-    </header>
+  <div class="animated-bg"></div>
 
-    <main>
-        <section id="habit-list">
-            <h2>Your Habits</h2>
-            <ul id="habits">
-                <!-- Predefined habits -->
-                <li>
-                    <input type="checkbox" class="habit-checkbox">
-                    <span>Drink 8 glasses of water</span>
-                    <button class="delete-btn">Delete</button>
-                </li>
-                <li>
-                    <input type="checkbox" class="habit-checkbox">
-                    <span>Exercise for 30 minutes</span>
-                    <button class="delete-btn">Delete</button>
-                </li>
-                <li>
-                    <input type="checkbox" class="habit-checkbox">
-                    <span>Read for 20 minutes</span>
-                    <button class="delete-btn">Delete</button>
-                </li>
-            </ul>
-        </section>
+  <header class="navbar">
+    <div class="logo">✅ HabitFlow</div>
 
-        <section id="add-habit">
-            <h2>Add a New Habit</h2>
-            <form id="habit-form">
-                <label for="new-habit">New Habit:</label>
-                <input type="text" id="new-habit" placeholder="Enter a new habit">
-                <button type="submit">Add Habit</button>
-            </form>
-        </section>
-    </main>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#tracker">Tracker</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#goals">Goals</a>
+      <a href="#about">About</a>
+    </nav>
 
-    <footer>
-        <p>Habit Tracker App - Debug and Improve Me!</p>
-    </footer>
+    <button id="themeBtn">🌙</button>
+  </header>
 
-    <script src="script.js"></script>
+  <section id="home" class="page hero">
+    <div class="hero-text">
+      <p class="tag">Smart Habit Tracker</p>
+      <h1>Build better habits every single day.</h1>
+      <p>
+        Track your habits, monitor progress, build streaks, and stay motivated
+        with a clean modern dashboard.
+      </p>
+      <a href="#tracker" class="main-btn">Start Tracking</a>
+    </div>
+
+    <img
+      src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=700&q=80"
+      alt="Productive desk"
+    />
+  </section>
+
+  <main>
+    <section id="tracker" class="page card">
+      <h2>Add a Habit</h2>
+
+      <form id="habitForm">
+        <input type="text" id="habitInput" placeholder="Enter a new habit..." required />
+
+        <select id="categoryInput">
+          <option value="Health">Health</option>
+          <option value="School">School</option>
+          <option value="Fitness">Fitness</option>
+          <option value="Mindset">Mindset</option>
+          <option value="Productivity">Productivity</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <select id="priorityInput">
+          <option value="Low">Low Priority</option>
+          <option value="Medium">Medium Priority</option>
+          <option value="High">High Priority</option>
+        </select>
+
+        <button type="submit">+ Add Habit</button>
+      </form>
+
+      <div class="tools">
+        <input type="text" id="searchInput" placeholder="Search habits..." />
+
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="active">Active</button>
+          <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+      </div>
+
+      <ul id="habitList"></ul>
+    </section>
+
+    <section id="dashboard" class="page card">
+      <h2>Dashboard</h2>
+
+      <div class="stats">
+        <div class="stat">
+          <h3 id="totalHabits">0</h3>
+          <p>Total Habits</p>
+        </div>
+
+        <div class="stat">
+          <h3 id="completedHabits">0</h3>
+          <p>Completed</p>
+        </div>
+
+        <div class="stat">
+          <h3 id="progressPercent">0%</h3>
+          <p>Progress</p>
+        </div>
+
+        <div class="stat">
+          <h3 id="streakCount">🔥 0</h3>
+          <p>Streak</p>
+        </div>
+      </div>
+
+      <div class="progress-box">
+        <div class="progress-top">
+          <p>Today’s Progress</p>
+          <p id="progressText">0/0 completed</p>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill"></div>
+        </div>
+      </div>
+
+      <p id="quoteText" class="quote">Small habits create big changes.</p>
+    </section>
+
+    <section id="goals" class="page card">
+      <h2>Goals</h2>
+
+      <div class="goal-grid">
+        <div class="goal-card">🌊 Drink more water</div>
+        <div class="goal-card">📚 Study daily</div>
+        <div class="goal-card">🏃 Exercise often</div>
+        <div class="goal-card">🧠 Improve mindset</div>
+      </div>
+    </section>
+
+    <section id="about" class="page card">
+      <h2>About HabitFlow</h2>
+      <p>
+        HabitFlow helps users stay consistent by organizing habits into
+        categories, tracking daily progress, saving data, and showing useful
+        statistics.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>HabitFlow — Stay consistent. Stay powerful.</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
