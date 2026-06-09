@@ -137,7 +137,8 @@ nav a:hover {
 .filter-btn,
 .delete-btn,
 .counter-btn,
-.quick-btn {
+.quick-btn,
+.reset-btn {
   border: none;
   border-radius: 16px;
   padding: 14px 18px;
@@ -159,7 +160,8 @@ nav a:hover {
 .filter-btn:hover,
 .delete-btn:hover,
 .counter-btn:hover,
-.quick-btn:hover {
+.quick-btn:hover,
+.reset-btn:hover {
   transform: translateY(-3px);
 }
 
@@ -237,6 +239,12 @@ select {
 .filter-btn.active {
   background: linear-gradient(135deg, #38bdf8, #7c3aed);
   box-shadow: 0 10px 25px rgba(124, 58, 237, 0.35);
+}
+
+.reset-btn {
+  color: white;
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.25);
 }
 
 #habitList {

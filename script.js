@@ -9,6 +9,7 @@ const unitInput = document.getElementById("unitInput");
 const habitList = document.getElementById("habitList");
 const searchInput = document.getElementById("searchInput");
 const filterButtons = document.querySelectorAll(".filter-btn");
+const resetDataBtn = document.getElementById("resetDataBtn");
 const themeBtn = document.getElementById("themeBtn");
 
 const totalHabits = document.getElementById("totalHabits");
@@ -21,19 +22,9 @@ const quoteText = document.getElementById("quoteText");
 
 let currentFilter = "all";
 
-// BUG FIX: Safeguard against ghost data configurations by validating localStorage items accurately.
-const localData = localStorage.getItem("habitflowHabits");
-let habits = [];
-
-if (localData !== null) {
-  try {
-    habits = JSON.parse(localData);
-  } catch(e) {
-    habits = [];
-  }
-} else {
-  // Default values only load if storage is entirely clean
-  habits = [
+// Base function to retrieve clean default values safely
+function getPreloadedHabits() {
+  return [
     {
       text: "Drink 8 glasses of water",
       type: "counter",
@@ -62,6 +53,20 @@ if (localData !== null) {
   ];
 }
 
+// BUG FIX: Ensure default configurations load gracefully without parsing empty references.
+const localData = localStorage.getItem("habitflowHabits");
+let habits = [];
+
+if (localData !== null) {
+  try {
+    habits = JSON.parse(localData);
+  } catch(e) {
+    habits = getPreloadedHabits();
+  }
+} else {
+  habits = getPreloadedHabits();
+}
+
 const quotes = [
   "Small habits create big changes.",
   "Consistency beats motivation.",
@@ -80,7 +85,6 @@ function getHabitCompleted(habit) {
     return habit.current >= habit.target;
   }
   if (habit.type === "anti") {
-    // Anti-habits are considered "Safe/Succeeded" as long as you haven't hit your absolute max limit.
     return habit.current < habit.target;
   }
   return habit.completed;
@@ -88,7 +92,7 @@ function getHabitCompleted(habit) {
 
 function getCounterPercent(habit) {
   if (habit.type === "checkbox") return 0;
-  if (habit.target <= 0) return 0;
+  if (!habit.target || habit.target <= 0) return 0;
   const percent = Math.round((habit.current / habit.target) * 100);
   return Math.min(percent, 100);
 }
@@ -96,11 +100,12 @@ function getCounterPercent(habit) {
 function renderHabits() {
   habitList.innerHTML = "";
 
-  // Filter logic updates
+  // BUG FIX: Filter out invalid entries immediately before evaluating search metrics or layout states
   let filteredHabits = habits.filter(function(habit) {
-    // Safeguard check to eliminate ghost items missing data attributes
-    if (!habit || !habit.text) return false;
+    return habit && typeof habit === "object" && habit.text && habit.type;
+  });
 
+  filteredHabits = filteredHabits.filter(function(habit) {
     const completed = getHabitCompleted(habit);
 
     if (currentFilter === "completed") return habit.type === "anti" ? habit.current >= habit.target : completed;
@@ -134,14 +139,12 @@ function renderHabits() {
     const li = document.createElement("li");
     li.className = "habit-item";
 
-    // Style according to state
     if (habit.type !== "anti" && getHabitCompleted(habit)) {
       li.classList.add("completed");
     } else if (habit.type === "anti" && habit.current >= habit.target) {
       li.classList.add("anti-failed");
     }
 
-    // TYPE 1: Checkbox Habit
     if (habit.type === "checkbox") {
       li.innerHTML = `
         <input 
@@ -176,7 +179,6 @@ function renderHabits() {
       });
     }
 
-    // TYPE 2: Counter Habit
     if (habit.type === "counter") {
       const percent = getCounterPercent(habit);
 
@@ -245,7 +247,6 @@ function renderHabits() {
       });
     }
 
-    // TYPE 3: Anti-Habit (Feature Request)
     if (habit.type === "anti") {
       const percent = getCounterPercent(habit);
       const isFailed = habit.current >= habit.target;
@@ -306,8 +307,7 @@ function renderHabits() {
 }
 
 function updateDashboard() {
-  // Ensure we filter out potential empty object properties
-  const validHabits = habits.filter(h => h && h.text);
+  const validHabits = habits.filter(h => h && h.text && h.type);
   const total = validHabits.length;
 
   const completed = validHabits.filter(function(habit) {
@@ -389,6 +389,15 @@ filterButtons.forEach(function(button) {
     currentFilter = button.dataset.filter;
     renderHabits();
   });
+});
+
+// Added Action Listener for Data Drops & Default Restorations
+resetDataBtn.addEventListener("click", function() {
+  if (confirm("Are you sure you want to clear your data and reload preloaded habits?")) {
+    habits = getPreloadedHabits();
+    saveHabits();
+    renderHabits();
+  }
 });
 
 searchInput.addEventListener("input", renderHabits);
