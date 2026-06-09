@@ -21,33 +21,46 @@ const quoteText = document.getElementById("quoteText");
 
 let currentFilter = "all";
 
-let habits = JSON.parse(localStorage.getItem("habitflowHabits")) || [
-  {
-    text: "Drink 8 glasses of water",
-    type: "counter",
-    category: "Health",
-    priority: "High",
-    target: 8,
-    current: 0,
-    unit: "glasses"
-  },
-  {
-    text: "Study for 60 minutes",
-    type: "counter",
-    category: "School",
-    priority: "High",
-    target: 60,
-    current: 0,
-    unit: "mins"
-  },
-  {
-    text: "Make my bed",
-    type: "checkbox",
-    category: "Productivity",
-    priority: "Medium",
-    completed: false
+// BUG FIX: Safeguard against ghost data configurations by validating localStorage items accurately.
+const localData = localStorage.getItem("habitflowHabits");
+let habits = [];
+
+if (localData !== null) {
+  try {
+    habits = JSON.parse(localData);
+  } catch(e) {
+    habits = [];
   }
-];
+} else {
+  // Default values only load if storage is entirely clean
+  habits = [
+    {
+      text: "Drink 8 glasses of water",
+      type: "counter",
+      category: "Health",
+      priority: "High",
+      target: 8,
+      current: 0,
+      unit: "glasses"
+    },
+    {
+      text: "Study for 60 minutes",
+      type: "counter",
+      category: "School",
+      priority: "High",
+      target: 60,
+      current: 0,
+      unit: "mins"
+    },
+    {
+      text: "Make my bed",
+      type: "checkbox",
+      category: "Productivity",
+      priority: "Medium",
+      completed: false
+    }
+  ];
+}
 
 const quotes = [
   "Small habits create big changes.",
@@ -66,13 +79,16 @@ function getHabitCompleted(habit) {
   if (habit.type === "counter") {
     return habit.current >= habit.target;
   }
-
+  if (habit.type === "anti") {
+    // Anti-habits are considered "Safe/Succeeded" as long as you haven't hit your absolute max limit.
+    return habit.current < habit.target;
+  }
   return habit.completed;
 }
 
 function getCounterPercent(habit) {
-  if (habit.type !== "counter") return 0;
-
+  if (habit.type === "checkbox") return 0;
+  if (habit.target <= 0) return 0;
   const percent = Math.round((habit.current / habit.target) * 100);
   return Math.min(percent, 100);
 }
@@ -80,12 +96,17 @@ function getCounterPercent(habit) {
 function renderHabits() {
   habitList.innerHTML = "";
 
+  // Filter logic updates
   let filteredHabits = habits.filter(function(habit) {
+    // Safeguard check to eliminate ghost items missing data attributes
+    if (!habit || !habit.text) return false;
+
     const completed = getHabitCompleted(habit);
 
-    if (currentFilter === "completed") return completed;
-    if (currentFilter === "active") return !completed;
+    if (currentFilter === "completed") return habit.type === "anti" ? habit.current >= habit.target : completed;
+    if (currentFilter === "active") return habit.type === "anti" ? habit.current < habit.target : !completed;
     if (currentFilter === "counter") return habit.type === "counter";
+    if (currentFilter === "anti") return habit.type === "anti";
 
     return true;
   });
@@ -108,14 +129,19 @@ function renderHabits() {
 
   filteredHabits.forEach(function(habit) {
     const realIndex = habits.indexOf(habit);
+    if (realIndex === -1) return; 
 
     const li = document.createElement("li");
     li.className = "habit-item";
 
-    if (getHabitCompleted(habit)) {
+    // Style according to state
+    if (habit.type !== "anti" && getHabitCompleted(habit)) {
       li.classList.add("completed");
+    } else if (habit.type === "anti" && habit.current >= habit.target) {
+      li.classList.add("anti-failed");
     }
 
+    // TYPE 1: Checkbox Habit
     if (habit.type === "checkbox") {
       li.innerHTML = `
         <input 
@@ -123,17 +149,14 @@ function renderHabits() {
           class="habit-check" 
           ${habit.completed ? "checked" : ""}
         />
-
         <div>
           <p class="habit-title">${habit.text}</p>
-
           <div class="habit-info">
             <span class="badge type-badge">Checkbox</span>
             <span class="badge ${habit.category}">${habit.category}</span>
             <span class="badge priority-${habit.priority}">${habit.priority}</span>
           </div>
         </div>
-
         <button class="delete-btn">Delete</button>
       `;
 
@@ -153,31 +176,27 @@ function renderHabits() {
       });
     }
 
+    // TYPE 2: Counter Habit
     if (habit.type === "counter") {
       const percent = getCounterPercent(habit);
 
       li.innerHTML = `
         <div class="counter-icon">🔢</div>
-
         <div>
           <p class="habit-title">${habit.text}</p>
-
           <div class="habit-info">
             <span class="badge type-badge">Counter</span>
             <span class="badge ${habit.category}">${habit.category}</span>
             <span class="badge priority-${habit.priority}">${habit.priority}</span>
           </div>
-
           <div class="counter-box">
             <div class="counter-top">
               <span>${habit.current} / ${habit.target} ${habit.unit}</span>
               <span>${percent}%</span>
             </div>
-
             <div class="counter-bar">
               <div class="counter-fill" style="width: ${percent}%"></div>
             </div>
-
             <div class="counter-actions">
               <button class="counter-btn minus">-1</button>
               <button class="counter-btn plus">+1</button>
@@ -186,7 +205,6 @@ function renderHabits() {
             </div>
           </div>
         </div>
-
         <button class="delete-btn">Delete</button>
       `;
 
@@ -203,25 +221,73 @@ function renderHabits() {
       });
 
       plusBtn.addEventListener("click", function() {
-        habits[realIndex].current = Math.min(
-          habits[realIndex].target,
-          habits[realIndex].current + 1
-        );
+        habits[realIndex].current = Math.min(habits[realIndex].target, habits[realIndex].current + 1);
         saveHabits();
         renderHabits();
       });
 
       quickBtn.addEventListener("click", function() {
-        habits[realIndex].current = Math.min(
-          habits[realIndex].target,
-          habits[realIndex].current + 5
-        );
+        habits[realIndex].current = Math.min(habits[realIndex].target, habits[realIndex].current + 5);
         saveHabits();
         renderHabits();
       });
 
       completeBtn.addEventListener("click", function() {
         habits[realIndex].current = habits[realIndex].target;
+        saveHabits();
+        renderHabits();
+      });
+
+      deleteBtn.addEventListener("click", function() {
+        habits.splice(realIndex, 1);
+        saveHabits();
+        renderHabits();
+      });
+    }
+
+    // TYPE 3: Anti-Habit (Feature Request)
+    if (habit.type === "anti") {
+      const percent = getCounterPercent(habit);
+      const isFailed = habit.current >= habit.target;
+
+      li.innerHTML = `
+        <div class="counter-icon">⚠️</div>
+        <div>
+          <p class="habit-title">${habit.text} ${isFailed ? '(Failed Today)' : '(Active Streak)'}</p>
+          <div class="habit-info">
+            <span class="badge type-badge anti-badge">Anti-Habit</span>
+            <span class="badge ${habit.category}">${habit.category}</span>
+            <span class="badge priority-${habit.priority}">${habit.priority}</span>
+          </div>
+          <div class="counter-box">
+            <div class="counter-top">
+              <span>Slips: ${habit.current} / Max Allowed: ${habit.target} ${habit.unit}</span>
+              <span>${percent}% Limit Reach</span>
+            </div>
+            <div class="counter-bar">
+              <div class="counter-fill anti-fill" style="width: ${percent}%"></div>
+            </div>
+            <div class="counter-actions">
+              <button class="counter-btn minus">-1 slip</button>
+              <button class="counter-btn plus warn">+1 Slip (Report Failure)</button>
+            </div>
+          </div>
+        </div>
+        <button class="delete-btn">Delete</button>
+      `;
+
+      const minusBtn = li.querySelector(".minus");
+      const plusBtn = li.querySelector(".plus");
+      const deleteBtn = li.querySelector(".delete-btn");
+
+      minusBtn.addEventListener("click", function() {
+        habits[realIndex].current = Math.max(0, habits[realIndex].current - 1);
+        saveHabits();
+        renderHabits();
+      });
+
+      plusBtn.addEventListener("click", function() {
+        habits[realIndex].current = habits[realIndex].current + 1;
         saveHabits();
         renderHabits();
       });
@@ -240,13 +306,15 @@ function renderHabits() {
 }
 
 function updateDashboard() {
-  const total = habits.length;
+  // Ensure we filter out potential empty object properties
+  const validHabits = habits.filter(h => h && h.text);
+  const total = validHabits.length;
 
-  const completed = habits.filter(function(habit) {
+  const completed = validHabits.filter(function(habit) {
     return getHabitCompleted(habit);
   }).length;
 
-  const counters = habits.filter(function(habit) {
+  const counters = validHabits.filter(function(habit) {
     return habit.type === "counter";
   }).length;
 
@@ -256,7 +324,7 @@ function updateDashboard() {
   completedHabits.textContent = completed;
   counterHabits.textContent = counters;
   progressPercent.textContent = percent + "%";
-  progressText.textContent = `${completed}/${total} completed`;
+  progressText.textContent = `${completed}/${total} successful`;
   progressFill.style.width = percent + "%";
 }
 
@@ -283,18 +351,18 @@ habitForm.addEventListener("submit", function(e) {
     });
   }
 
-  if (type === "counter") {
+  if (type === "counter" || type === "anti") {
     const target = Number(targetInput.value);
-    const unit = unitInput.value.trim() || "times";
+    const unit = unitInput.value.trim() || (type === "anti" ? "slips" : "times");
 
     if (!target || target <= 0) {
-      alert("Please enter a valid target number for your counter habit.");
+      alert("Please enter a valid target/limit threshold number.");
       return;
     }
 
     habits.push({
       text: text,
-      type: "counter",
+      type: type,
       category: category,
       priority: priority,
       target: target,
@@ -339,7 +407,6 @@ themeBtn.addEventListener("click", function() {
 
 function loadTheme() {
   const savedTheme = localStorage.getItem("habitflowTheme");
-
   if (savedTheme === "light") {
     document.body.classList.add("light");
     themeBtn.textContent = "☀️";
@@ -356,9 +423,15 @@ typeInput.addEventListener("change", function() {
     targetInput.style.display = "none";
     unitInput.style.display = "none";
     targetInput.required = false;
+  } else if (typeInput.value === "anti") {
+    targetInput.style.display = "block";
+    unitInput.style.display = "block";
+    targetInput.placeholder = "Max Allowed Slips";
+    targetInput.required = true;
   } else {
     targetInput.style.display = "block";
     unitInput.style.display = "block";
+    targetInput.placeholder = "Target";
     targetInput.required = true;
   }
 });

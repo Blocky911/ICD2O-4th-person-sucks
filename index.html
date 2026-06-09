@@ -31,8 +31,7 @@
       <p class="tag">Smart Habit Tracker</p>
       <h1>Build better habits with style.</h1>
       <p>
-        Track checklist habits and number-based goals like water, steps,
-        reading pages, study minutes, workouts, and more.
+        Track checklist habits, number-based goals, and avoid bad slips with Anti-Habits.
       </p>
       <a href="#tracker" class="main-btn">Start Tracking</a>
     </div>
@@ -49,7 +48,7 @@
     <section id="tracker" class="page card">
       <div class="section-title">
         <h2>Add New Habit</h2>
-        <p>Create either a checklist habit or a counter habit.</p>
+        <p>Create a checklist habit, counter habit, or an anti-habit to avoid.</p>
       </div>
 
       <form id="habitForm">
@@ -63,6 +62,7 @@
         <select id="typeInput">
           <option value="checkbox">Checkbox Habit</option>
           <option value="counter">Counter Habit</option>
+          <option value="anti">Anti-Habit (Avoid)</option>
         </select>
 
         <select id="categoryInput">
@@ -83,14 +83,14 @@
         <input
           type="number"
           id="targetInput"
-          placeholder="Target"
+          placeholder="Max Slips Allowed"
           min="1"
         />
 
         <input
           type="text"
           id="unitInput"
-          placeholder="Unit: pages, glasses, mins..."
+          placeholder="Unit: times, slips..."
         />
 
         <button type="submit" class="add-btn">+ Add Habit</button>
@@ -104,6 +104,7 @@
           <button class="filter-btn" data-filter="active">Active</button>
           <button class="filter-btn" data-filter="completed">Completed</button>
           <button class="filter-btn" data-filter="counter">Counters</button>
+          <button class="filter-btn" data-filter="anti">Anti-Habits</button>
         </div>
       </div>
 
@@ -124,7 +125,7 @@
 
         <div class="stat">
           <h3 id="completedHabits">0</h3>
-          <p>Completed</p>
+          <p>Completed / Safe</p>
         </div>
 
         <div class="stat">
@@ -155,15 +156,15 @@
     <section id="goals" class="page card">
       <div class="section-title">
         <h2>Goal Ideas</h2>
-        <p>Use these as inspiration for checkbox or counter habits.</p>
+        <p>Use these as inspiration for checkbox, counter, or anti habits.</p>
       </div>
 
       <div class="goal-grid">
         <div class="goal-card">💧 Drink 8 glasses of water</div>
         <div class="goal-card">📚 Read 20 pages</div>
-        <div class="goal-card">⏱️ Study 60 minutes</div>
+        <div class="goal-card">⚠️ No Soda/Sugar Drinks</div>
         <div class="goal-card">🏃 Walk 10,000 steps</div>
-        <div class="goal-card">💪 Do 50 pushups</div>
+        <div class="goal-card">🛑 No Social Media Before 12PM</div>
         <div class="goal-card">🧠 Meditate 10 minutes</div>
       </div>
     </section>
@@ -174,10 +175,7 @@
       </div>
 
       <p class="about-text">
-        HabitFlow is a modern habit tracker that supports both simple checkbox
-        habits and number-based counter habits. It saves user data, tracks
-        progress, filters habits, and gives users a clean dashboard to stay
-        motivated.
+        HabitFlow is a modern habit tracker that supports simple checkbox habits, number-based counter habits, and cautionary anti-habits. It saves user data, tracks progress, filters habits, and gives users a clean dashboard to stay motivated.
       </p>
     </section>
   </main>

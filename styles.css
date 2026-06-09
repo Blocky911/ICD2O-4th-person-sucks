@@ -261,7 +261,6 @@ select {
     opacity: 0;
     transform: scale(0.97);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
@@ -284,6 +283,16 @@ select {
 .completed .habit-title {
   text-decoration: line-through;
   opacity: 0.62;
+}
+
+/* Anti-habit styles */
+.habit-item.anti-failed {
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  background: rgba(239, 68, 68, 0.12);
+}
+.habit-item.anti-failed .habit-title {
+  color: #fca5a5;
+  text-decoration: line-through;
 }
 
 .habit-info {
@@ -314,6 +323,10 @@ select {
 .type-badge {
   background: #cffafe;
   color: #155e75;
+}
+.type-badge.anti-badge {
+  background: #ffe4e6;
+  color: #9f1239;
 }
 
 .delete-btn {
@@ -350,6 +363,10 @@ select {
   transition: width 0.35s ease;
 }
 
+.counter-fill.anti-fill {
+  background: linear-gradient(90deg, #f97316, #ef4444);
+}
+
 .counter-actions {
   display: flex;
   flex-wrap: wrap;
@@ -365,6 +382,10 @@ select {
 
 .counter-btn.plus {
   background: linear-gradient(135deg, #22c55e, #06b6d4);
+}
+
+.counter-btn.plus.warn {
+  background: linear-gradient(135deg, #f97316, #ef4444);
 }
 
 .counter-btn.minus {
@@ -504,7 +525,6 @@ body.light .counter-btn {
   #habitForm {
     grid-template-columns: repeat(2, 1fr);
   }
-
   .add-btn {
     grid-column: 1 / -1;
   }
@@ -515,24 +535,19 @@ body.light .counter-btn {
     flex-direction: column;
     gap: 14px;
   }
-
   nav {
     flex-wrap: wrap;
     justify-content: center;
   }
-
   .hero {
     grid-template-columns: 1fr;
   }
-
   .hero h1 {
     font-size: 3rem;
   }
-
   .tools {
     grid-template-columns: 1fr;
   }
-
   .stats,
   .goal-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -543,34 +558,27 @@ body.light .counter-btn {
   .hero h1 {
     font-size: 2.35rem;
   }
-
   .hero-image img {
     height: 260px;
   }
-
   .card {
     padding: 22px;
   }
-
   #habitForm,
   .stats,
   .goal-grid {
     grid-template-columns: 1fr;
   }
-
   .habit-item {
     grid-template-columns: auto 1fr;
   }
-
   .delete-btn {
     grid-column: 1 / -1;
     width: 100%;
   }
-
   .filters {
     flex-direction: column;
   }
-
   .filter-btn {
     width: 100%;
   }
